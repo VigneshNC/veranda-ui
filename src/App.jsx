@@ -12,6 +12,8 @@ import Profile from './pages/Profile';
 import ContactInfo from './pages/ContactInfo';
 import Calls from './pages/Calls';
 import Welcome from './pages/Welcome.jsx';
+import NewMessage from './pages/NewMessage.jsx';
+import Status from './pages/Status.jsx';
 
 const { Content } = Layout;
 
@@ -27,6 +29,8 @@ export default function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/otp" element={<OTP />} />
               <Route path="/messages" element={<Messages />} />
+              <Route path="/new-message" element={<NewMessage />} />
+              <Route path="/status" element={<Status />} />
               <Route path="/chat/:id" element={<ChatRoom />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/profile" element={<Profile />} />

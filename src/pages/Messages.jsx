@@ -74,7 +74,6 @@ const Messages = () => {
         borderBottom: '1px solid rgba(0,0,0,0.05)'
       }}>
         <Flex align="center" gap={12}>
-          <Avatar src="https://picsum.photos/seed/me/200" size={32} />
           <Title level={4} style={{ margin: 0, color: '#00453d', fontWeight: 800, letterSpacing: '-1px' }}>Veranda</Title>
         </Flex>
         <Flex gap={8}>
@@ -179,7 +178,8 @@ const Messages = () => {
           width: '56px', 
           height: '56px',
           zIndex: 100
-        }} 
+        }}
+        onClick={() => navigate("/new-message")}
       />
 
       <BottomNav />

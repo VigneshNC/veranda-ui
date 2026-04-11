@@ -72,7 +72,7 @@ const Welcome = () => {
           block
           icon={<ArrowRightOutlined />}
           iconPlacement="end"
-          onClick={() => navigate("/otp")}
+          onClick={() => navigate("/login")}
           style={{ height: "56px", fontSize: "18px" }}
         >
           Agree and continue
