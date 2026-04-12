@@ -1,16 +1,71 @@
-import { useNavigate } from "react-router-dom";
-import { Flex, Typography, Input, Button, ConfigProvider } from "antd";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Flex, Typography, Input, Button, ConfigProvider, message } from "antd";
 import {
   LockOutlined,
   ReloadOutlined,
   ArrowLeftOutlined,
 } from "@ant-design/icons";
 import { motion } from "framer-motion";
+import { useRef, useState } from "react";
+import axios from "axios";
 
 const { Title, Text, Paragraph } = Typography;
 
 const OTP = () => {
   const navigate = useNavigate();
+  const { state } = useLocation(); // Grabs the phone number from navigation
+  const [otp, setOtp] = useState(new Array(6).fill(""));
+  const [loading, setLoading] = useState(false);
+
+  const inputRefs = useRef([]);
+
+  const handleChange = (value, index) => {
+    if (isNaN(value)) return; // Only allow numbers
+
+    const newOtp = [...otp];
+    // Take only the last character (prevents double entry)
+    newOtp[index] = value.substring(value.length - 1);
+    setOtp(newOtp);
+
+    // 3. Move focus to the next box automatically
+    if (value && index < 5) {
+      inputRefs.current[index + 1].focus();
+    }
+  };
+
+  const handleKeyDown = (e, index) => {
+    // 4. Handle Backspace: Move focus to the previous box
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1].focus();
+    }
+  };
+
+  // This is the string you will send to /api/auth/verify-otp
+  const finalOtp = otp.join("");
+
+  const handleVerify = async () => {
+    const fullOtp = otp.join("");
+    if (fullOtp.length < 6) return message.error("Enter full code");
+
+    setLoading(true);
+    try {
+      // 3. Use the phone number from state + the typed OTP
+      const response = await axios.post("http://localhost:8080/api/auth/verify-otp", {
+        phoneNumber: `+91${state.phoneNumber}`,
+        otp: fullOtp
+      });
+
+      // 4. Success! Save JWT and go to Chat
+      localStorage.setItem("veranda_token", response.data.token);
+      localStorage.setItem("veranda_userId", response.data.userId);
+      
+      navigate("/messages");
+    } catch (error) {
+      message.error("Invalid OTP. Please try 123456");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <ConfigProvider
@@ -118,7 +173,7 @@ const OTP = () => {
           >
             We've sent a 6-digit verification code to{" "}
             <Text strong style={{ color: "#00453d" }}>
-              +91 000 000 0000
+              +91 {state?.phoneNumber}
             </Text>
             . Please enter it below verify it.
           </Paragraph>
@@ -129,10 +184,14 @@ const OTP = () => {
             justify="space-between"
             style={{ marginBottom: "32px" }}
           >
-            {[1, 2, 3, 4, 5, 6].map((i) => (
+            {otp.map((digit, i) => (
               <Input
                 key={i}
+                ref={(el) => (inputRefs.current[i] = el)} // Assign ref
+                value={digit}
                 maxLength={1}
+                onChange={(e) => handleChange(e.target.value, i)}
+                onKeyDown={(e) => handleKeyDown(e, i)}
                 inputMode="numeric"
                 placeholder="-"
                 style={{
@@ -156,7 +215,9 @@ const OTP = () => {
             type="primary"
             size="large"
             block
-            onClick={() => navigate("/messages")}
+            loading={loading}
+            // onClick={() => navigate("/messages")}
+            onClick={handleVerify}
             style={{
               height: "56px",
               fontSize: "17px",

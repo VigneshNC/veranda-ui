@@ -62,7 +62,6 @@ const Settings = () => {
         borderBottom: '1px solid rgba(0,0,0,0.05)'
       }}>
         <Flex align="center" gap={12}>
-          <Avatar src="https://picsum.photos/seed/me/200" size={32} />
           <Title level={4} style={{ margin: 0, color: '#00453d', fontWeight: 800 }}>Veranda</Title>
         </Flex>
         <Button type="text" icon={<SearchOutlined />} shape="circle" />

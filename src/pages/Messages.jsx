@@ -3,6 +3,7 @@ import { Flex, Typography, Avatar, Badge, Button, Layout } from 'antd';
 import { SearchOutlined, MoreOutlined, CommentOutlined } from '@ant-design/icons';
 import { motion } from 'framer-motion';
 import BottomNav from '../components/BottomNav';
+import { useEffect, useState } from 'react';
 
 const { Title, Text } = Typography;
 const { Header, Content } = Layout;
@@ -57,6 +58,30 @@ const chats = [
 
 const Messages = () => {
   const navigate = useNavigate();
+  const [contacts, setContacts] = useState([]); // State for real data
+  const [loading, setLoading] = useState(true);
+
+  // 1. Fetch data from Spring Boot
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        const token = localStorage.getItem('veranda_token');
+        const currentUserId = localStorage.getItem('veranda_userId');
+
+        const response = await axios.get(`http://localhost:8080/api/users/contacts?currentUserId=${currentUserId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        setContacts(response.data);
+      } catch (error) {
+        console.error("Error fetching contacts", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContacts();
+  }, []);
 
   return (
     <Layout style={{ minHeight: '100vh', backgroundColor: '#f7f9fc' }}>
@@ -85,85 +110,50 @@ const Messages = () => {
       <Content style={{ padding: '88px 24px 120px', maxWidth: '640px', margin: '0 auto', width: '100%' }}>
         <div style={{ marginBottom: '32px' }}>
           <Title level={2} style={{ fontSize: '32px', fontWeight: 800, color: '#00453d', margin: 0, letterSpacing: '-1px' }}>Messages</Title>
-          <Text style={{ color: '#3f4946', fontSize: '14px' }}>3 unread conversations</Text>
+          <Text style={{ color: '#3f4946', fontSize: '14px' }}>{contacts.length} contacts available</Text>
         </div>
 
         <Flex vertical gap={16}>
-          {chats.map((chat, index) => (
+          {loading ? (
+            <Text>Loading your Veranda chats...</Text>
+          ) : (
+            contacts.map((user, index) => (
             <motion.div
-              key={chat.id}
+              key={user.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              onClick={() => navigate(`/chat/${chat.id}`)}
+              onClick={() => navigate(`/chat/${user.id}`)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 gap: '16px',
                 padding: '16px',
                 borderRadius: '24px',
-                backgroundColor: chat.unread > 0 ? '#fff' : 'transparent',
-                boxShadow: chat.unread > 0 ? '0 4px 32px rgba(25, 28, 30, 0.04)' : 'none',
+                backgroundColor: '#fff',
+                boxShadow: '0 4px 32px rgba(25, 28, 30, 0.04)',
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
             >
-              <div style={{ position: 'relative' }}>
-                {chat.isGroup ? (
-                  <Avatar 
-                    shape="square" 
-                    size={56} 
-                    style={{ backgroundColor: '#075e54', borderRadius: '16px' }}
-                    icon={<CommentOutlined />}
-                  />
-                ) : (
-                  <Avatar 
-                    src={chat.avatar} 
-                    size={56} 
-                    style={{ borderRadius: '16px' }}
-                  />
-                )}
-                {chat.online && (
-                  <div style={{ 
-                    position: 'absolute', 
-                    bottom: '-2px', 
-                    right: '-2px', 
-                    width: '14px', 
-                    height: '14px', 
-                    backgroundColor: '#006d2f', 
-                    borderRadius: '50%', 
-                    border: '2px solid #fff' 
-                  }} />
-                )}
-              </div>
-
+              <Avatar 
+                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.phoneNumber}`} 
+                  size={56} 
+                  style={{ borderRadius: '16px' }}
+                />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <Flex justify="space-between" align="baseline">
-                  <Text strong style={{ fontSize: '16px', color: '#191c1e' }}>{chat.name}</Text>
-                  <Text style={{ fontSize: '12px', color: chat.unread > 0 ? '#006d2f' : '#3f4946', fontWeight: chat.unread > 0 ? 600 : 400 }}>
-                    {chat.time}
-                  </Text>
+                  <Text strong style={{ fontSize: '16px', color: '#191c1e' }}>{user.displayName || user.phoneNumber}</Text>
+                  <Text style={{ fontSize: '12px', color: '#3f4946' }}>
+                      Active
+                    </Text>
                 </Flex>
-                <Flex justify="space-between" align="center" style={{ marginTop: '2px' }}>
-                  <Text 
-                    ellipsis 
-                    style={{ 
-                      fontSize: '14px', 
-                      color: chat.unread > 0 ? '#191c1e' : '#3f4946',
-                      fontWeight: chat.unread > 0 ? 600 : 400,
-                      flex: 1,
-                      marginRight: '16px'
-                    }}
-                  >
-                    {chat.message}
+                <Text ellipsis style={{ fontSize: '14px', color: '#3f4946' }}>
+                    Tap to start a conversation...
                   </Text>
-                  {chat.unread > 0 && (
-                    <Badge count={chat.unread} style={{ backgroundColor: '#006d2f' }} />
-                  )}
-                </Flex>
               </div>
             </motion.div>
-          ))}
+          )))}
         </Flex>
       </Content>
 

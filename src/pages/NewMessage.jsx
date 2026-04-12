@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Flex,
   Typography,
@@ -7,27 +7,67 @@ import {
   List,
   ConfigProvider,
   Button,
+  Spin,
 } from "antd";
 import { Search, ArrowLeft, UserPlus, Users, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const { Title, Text } = Typography;
 
-const NewMessage = ({ onBack }) => {
+const NewMessage = () => {
   const navigate = useNavigate();
+  const [contacts, setContacts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const contacts = [
-    { id: 1, name: "Adengappa Aarumugam", status: "Available", alpha: "A" },
-    { id: 2, name: "Baba Shankar", status: "Urgent calls only", alpha: "B" },
-    {
-      id: 3,
-      name: "Casual Chithappa",
-      status: "Coding the 2026 update...",
-      alpha: "C",
-    },
-    { id: 4, name: "Dharma Durai", status: "At the gym", alpha: "D" },
-  ];
+  // 1. Fetch real contacts from your Spring Boot Backend
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        const token = localStorage.getItem("veranda_token");
+        const currentUserId = localStorage.getItem("veranda_userId");
+
+        const response = await axios.get(
+          "http://localhost:8080/api/users/contacts",
+          {
+            params: { currentUserId },
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
+
+        // 2. Sort alphabetically and add 'alpha' property for the UI headers
+        const sortedData = response.data
+          .map((user) => ({
+            ...user,
+            name: user.displayName || user.phoneNumber,
+            alpha: (user.displayName || user.phoneNumber)
+              .charAt(0)
+              .toUpperCase(),
+            status: "Hey there! I am using Veranda.", // Default status
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+
+        setContacts(sortedData);
+      } catch (error) {
+        console.error("Failed to load contacts:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContacts();
+  }, []);
+
+  // 3. Dynamic Search Filtering
+  const filteredContacts = useMemo(() => {
+    return contacts.filter(
+      (contact) =>
+        contact.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        contact.phoneNumber.includes(searchTerm),
+    );
+  }, [searchTerm, contacts]);
 
   return (
     <ConfigProvider
@@ -92,7 +132,7 @@ const NewMessage = ({ onBack }) => {
               <Button
                 type="text"
                 icon={<ArrowLeft size={20} />}
-                onClick={() => navigate("/messages")}
+                onClick={() => navigate(-1)}
                 style={{ color: "#075e54" }}
               />
               <div>
@@ -103,13 +143,15 @@ const NewMessage = ({ onBack }) => {
                   Select Contact
                 </Title>
                 <Text style={{ fontSize: "12px", opacity: 0.6 }}>
-                  256 Contacts
+                  {filteredContacts.length} Contacts
                 </Text>
               </div>
             </Flex>
 
             <Input
               placeholder="Search name or number..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
               prefix={
                 <Search size={18} color="#075e54" style={{ opacity: 0.5 }} />
               }
@@ -126,7 +168,10 @@ const NewMessage = ({ onBack }) => {
           {/* Special Actions */}
           <div style={{ padding: "8px 16px" }}>
             <List itemLayout="horizontal">
-              <List.Item style={{ cursor: "pointer", border: "none" }}>
+              <List.Item
+                style={{ cursor: "pointer", border: "none" }}
+                onClick={() => navigate("/create-group")}
+              >
                 <List.Item.Meta
                   avatar={
                     <Avatar
@@ -144,7 +189,10 @@ const NewMessage = ({ onBack }) => {
                   }
                 />
               </List.Item>
-              <List.Item style={{ cursor: "pointer", border: "none" }}>
+              <List.Item
+                style={{ cursor: "pointer", border: "none" }}
+                onClick={() => navigate("/add-contact")}
+              >
                 <List.Item.Meta
                   avatar={
                     <Avatar
@@ -167,57 +215,64 @@ const NewMessage = ({ onBack }) => {
 
           {/* Contact List */}
           <div style={{ flex: 1, overflowY: "auto", padding: "0 16px 20px" }}>
-            <List
-              dataSource={contacts}
-              renderItem={(item, index) => (
-                <div key={item.id}>
-                  {/* Alphabet Header Logic */}
-                  {(index === 0 ||
-                    contacts[index - 1].alpha !== item.alpha) && (
-                    <div
+            {loading ? (
+              <Flex justify="center" align="center" style={{ height: "100%" }}>
+                <Spin />
+              </Flex>
+            ) : (
+              <List
+                dataSource={filteredContacts}
+                renderItem={(item, index) => (
+                  <div key={item.id}>
+                    {/* Alphabet Header Logic */}
+                    {(index === 0 ||
+                      filteredContacts[index - 1].alpha !== item.alpha) && (
+                      <div
+                        style={{
+                          padding: "16px 8px 8px",
+                          color: "#075e54",
+                          fontWeight: 700,
+                          fontSize: "12px",
+                          opacity: 0.5,
+                        }}
+                      >
+                        {item.alpha}
+                      </div>
+                    )}
+                    <List.Item
+                      onClick={() => navigate(`/chat/${item.id}`)}
                       style={{
-                        padding: "16px 8px 8px",
-                        color: "#075e54",
-                        fontWeight: 700,
-                        fontSize: "12px",
-                        opacity: 0.5,
+                        padding: "12px 8px",
+                        borderRadius: "16px",
+                        cursor: "pointer",
+                        border: "none",
+                        transition: "background 0.3s",
                       }}
+                      className="contact-hover"
                     >
-                      {item.alpha}
-                    </div>
-                  )}
-                  <List.Item
-                    style={{
-                      padding: "12px 8px",
-                      borderRadius: "16px",
-                      cursor: "pointer",
-                      border: "none",
-                      transition: "background 0.3s",
-                    }}
-                    className="contact-hover"
-                  >
-                    <List.Item.Meta
-                      avatar={
-                        <Avatar
-                          size={48}
-                          src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${item.name}`}
-                        />
-                      }
-                      title={
-                        <Text strong style={{ color: "#075e54" }}>
-                          {item.name}
-                        </Text>
-                      }
-                      description={
-                        <Text style={{ fontSize: "12px", opacity: 0.6 }}>
-                          {item.status}
-                        </Text>
-                      }
-                    />
-                  </List.Item>
-                </div>
-              )}
-            />
+                      <List.Item.Meta
+                        avatar={
+                          <Avatar
+                            size={48}
+                            src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${item.phoneNumber}`}
+                          />
+                        }
+                        title={
+                          <Text strong style={{ color: "#075e54" }}>
+                            {item.name}
+                          </Text>
+                        }
+                        description={
+                          <Text style={{ fontSize: "12px", opacity: 0.6 }}>
+                            {item.status}
+                          </Text>
+                        }
+                      />
+                    </List.Item>
+                  </div>
+                )}
+              />
+            )}
           </div>
         </motion.div>
       </div>

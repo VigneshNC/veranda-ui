@@ -1,17 +1,70 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Flex, Typography, Input, Button, Select, ConfigProvider } from "antd";
+import { Flex, Typography, Input, Button, Select, ConfigProvider, message } from "antd";
 import {
   ArrowRightOutlined,
   GlobalOutlined,
   SafetyCertificateOutlined,
 } from "@ant-design/icons";
 import { motion } from "framer-motion";
+import axios from "axios";
 
 const { Title, Text, Paragraph } = Typography;
 
 const Login = () => {
   const navigate = useNavigate();
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const formatNumbers = (input) => {
+    // 1. Remove everything that isn't a digit
+    const cleanNumbers = input.replace(/\D/g, "");
+
+    // 2. Limit to 10 digits
+    const limited = cleanNumbers.substring(0, 10);
+
+    // 3. Apply the 000 000 0000 pattern
+    const size = limited.length;
+    if (size < 4) {
+      return limited;
+    } else if (size < 7) {
+      return `${limited.slice(0, 3)} ${limited.slice(3)}`;
+    } else {
+      return `${limited.slice(0, 3)} ${limited.slice(3, 6)} ${limited.slice(6, 10)}`;
+    }
+  };
+
+  const handleChange = (e) => {
+    const rawValue = e.target.value;
+    const formatted = formatNumbers(rawValue);
+
+    setPhoneNumber(formatted);
+  };
+
+  const handleSendOtp = async () => {
+    if (phoneNumber.length < 12) { // 10 digits + 2 spaces
+      return message.error("Please enter a valid 10-digit number");
+    }
+
+    setLoading(true);
+    try {
+      // Step 1: Clean the phone number (remove spaces)
+      const cleanPhone = phoneNumber.replace(/\s/g, "");
+      
+      // Step 2: Call your Spring Boot /api/auth/send-otp (or similar)
+      // For now, we just simulate success since you're hardcoding
+      await axios.post("http://localhost:8080/api/auth/request-otp", { 
+        phoneNumber: `+91${cleanPhone}` 
+      });
+
+      message.success("OTP sent successfully!");
+      navigate("/otp", { state: { phoneNumber: cleanPhone } });
+    } catch (error) {
+      message.error("Failed to send OTP. Check if Backend is running.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <ConfigProvider
@@ -131,15 +184,23 @@ const Login = () => {
                 // style={{ width: 90, borderRight: "1px solid rgba(0,0,0,0.1)" }}
                 options={[
                   { value: "+91", label: "+91" },
-                  { value: "+65", label: "+65" },
+                  // { value: "+65", label: "+65" },
                 ]}
               />
               <Input
                 placeholder="000 000 0000"
                 inputMode="numeric"
-                maxLength={10}
+                maxLength={12}
                 variant="borderless"
-                style={{ fontSize: "17px", fontWeight: 600 }}
+                value={phoneNumber}
+                onChange={handleChange}
+                style={{
+                  fontSize: "18px",
+                  fontWeight: 600,
+                  letterSpacing: "1px",
+                  color: "#075e54",
+                  width: "100%",
+                }}
               />
             </div>
 
@@ -167,7 +228,9 @@ const Login = () => {
               type="primary"
               size="large"
               block
-              onClick={() => navigate("/otp")}
+              loading={loading}
+              // onClick={() => navigate("/otp")}
+              onClick={handleSendOtp}
               style={{
                 height: "56px",
                 fontSize: "17px",

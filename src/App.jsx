@@ -14,6 +14,8 @@ import Calls from './pages/Calls';
 import Welcome from './pages/Welcome.jsx';
 import NewMessage from './pages/NewMessage.jsx';
 import Status from './pages/Status.jsx';
+import AddContact from './pages/AddContact.jsx';
+import CreateGroup from './pages/CreateGroup.jsx';
 
 const { Content } = Layout;
 
@@ -30,6 +32,8 @@ export default function App() {
               <Route path="/otp" element={<OTP />} />
               <Route path="/messages" element={<Messages />} />
               <Route path="/new-message" element={<NewMessage />} />
+              <Route path="/add-contact" element={<AddContact />} />
+              <Route path="/create-group" element={<CreateGroup />} />
               <Route path="/status" element={<Status />} />
               <Route path="/chat/:id" element={<ChatRoom />} />
               <Route path="/settings" element={<Settings />} />
