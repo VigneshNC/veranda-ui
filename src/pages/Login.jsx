@@ -53,7 +53,7 @@ const Login = () => {
       
       // Step 2: Call your Spring Boot /api/auth/send-otp (or similar)
       // For now, we just simulate success since you're hardcoding
-      await axios.post("http://localhost:8080/api/auth/request-otp", { 
+      await axios.post("https://veranda-service-production.up.railway.app/api/auth/request-otp", { 
         phoneNumber: `+91${cleanPhone}` 
       });
 

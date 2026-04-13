@@ -30,7 +30,7 @@ const NewMessage = () => {
         const currentUserId = localStorage.getItem("veranda_userId");
 
         const response = await axios.get(
-          "http://localhost:8080/api/users/contacts",
+          "https://veranda-service-production.up.railway.app/api/users/contacts",
           {
             params: { currentUserId },
             headers: { Authorization: `Bearer ${token}` },

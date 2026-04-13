@@ -50,7 +50,7 @@ const OTP = () => {
     setLoading(true);
     try {
       // 3. Use the phone number from state + the typed OTP
-      const response = await axios.post("http://localhost:8080/api/auth/verify-otp", {
+      const response = await axios.post("https://veranda-service-production.up.railway.app/api/auth/verify-otp", {
         phoneNumber: `+91${state.phoneNumber}`,
         otp: fullOtp
       });

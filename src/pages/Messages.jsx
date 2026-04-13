@@ -4,6 +4,7 @@ import { SearchOutlined, MoreOutlined, CommentOutlined } from '@ant-design/icons
 import { motion } from 'framer-motion';
 import BottomNav from '../components/BottomNav';
 import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 const { Title, Text } = Typography;
 const { Header, Content } = Layout;
@@ -68,7 +69,7 @@ const Messages = () => {
         const token = localStorage.getItem('veranda_token');
         const currentUserId = localStorage.getItem('veranda_userId');
 
-        const response = await axios.get(`http://localhost:8080/api/users/contacts?currentUserId=${currentUserId}`, {
+        const response = await axios.get(`https://veranda-service-production.up.railway.app/api/users/contacts?currentUserId=${currentUserId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 

@@ -20,7 +20,7 @@ const CreateGroup = () => {
       try {
         const token = localStorage.getItem("veranda_token");
         const currentUserId = localStorage.getItem("veranda_userId");
-        const response = await axios.get(`http://localhost:8080/api/users/contacts?currentUserId=${currentUserId}`, {
+        const response = await axios.get(`https://veranda-service-production.up.railway.app/api/users/contacts?currentUserId=${currentUserId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setContacts(response.data);
@@ -47,7 +47,7 @@ const CreateGroup = () => {
       const currentUserId = localStorage.getItem("veranda_userId");
       
       // We send the group name and the list of user IDs (including the creator)
-      await axios.post("http://localhost:8080/api/groups/create", {
+      await axios.post("https://veranda-service-production.up.railway.app/api/groups/create", {
         name: groupName,
         adminId: currentUserId,
         memberIds: [...selectedUsers, currentUserId]

@@ -9,7 +9,7 @@ export const useChat = (userId, token) => {
   useEffect(() => {
     // 1. Initialize the STOMP Client
     const client = new Client({
-      webSocketFactory: () => new SockJS("http://localhost:8080/ws"),
+      webSocketFactory: () => new SockJS("https://veranda-service-production.up.railway.app/ws"),
       connectHeaders: {
         Authorization: `Bearer ${token}`, // Sends your JWT
       },

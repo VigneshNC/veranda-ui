@@ -22,7 +22,7 @@ const AddContact = () => {
       const token = localStorage.getItem("veranda_token");
       const cleanPhone = `+91${formData.phone.replace(/\s/g, "")}`;
 
-      await axios.post("http://localhost:8080/api/users/add-contact", {
+      await axios.post("https://veranda-service-production.up.railway.app/api/users/add-contact", {
         displayName: formData.name,
         phoneNumber: cleanPhone
       }, {
