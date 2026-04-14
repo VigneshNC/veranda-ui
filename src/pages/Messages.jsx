@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import BottomNav from '../components/BottomNav';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { API_URL } from '../utils/constants';
 
 const { Title, Text } = Typography;
 const { Header, Content } = Layout;
@@ -69,7 +70,7 @@ const Messages = () => {
         const token = localStorage.getItem('veranda_token');
         const currentUserId = localStorage.getItem('veranda_userId');
 
-        const response = await axios.get(`https://veranda-service-production.up.railway.app/api/users/contacts?currentUserId=${currentUserId}`, {
+        const response = await axios.get(`${API_URL}/api/users/contacts?currentUserId=${currentUserId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 

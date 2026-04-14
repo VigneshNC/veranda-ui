@@ -4,6 +4,7 @@ import { ArrowLeft, UserPlus, Phone, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_URL } from "../utils/constants";
 
 const { Title, Text } = Typography;
 
@@ -22,7 +23,7 @@ const AddContact = () => {
       const token = localStorage.getItem("veranda_token");
       const cleanPhone = `+91${formData.phone.replace(/\s/g, "")}`;
 
-      await axios.post("https://veranda-service-production.up.railway.app/api/users/add-contact", {
+      await axios.post(`${API_URL}/api/users/add-contact`, {
         displayName: formData.name,
         phoneNumber: cleanPhone
       }, {

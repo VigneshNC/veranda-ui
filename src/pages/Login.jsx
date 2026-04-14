@@ -8,6 +8,7 @@ import {
 } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import axios from "axios";
+import { API_URL } from "../utils/constants";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -53,7 +54,7 @@ const Login = () => {
       
       // Step 2: Call your Spring Boot /api/auth/send-otp (or similar)
       // For now, we just simulate success since you're hardcoding
-      await axios.post("https://veranda-service-production.up.railway.app/api/auth/request-otp", { 
+      await axios.post(`${API_URL}/api/auth/request-otp`, { 
         phoneNumber: `+91${cleanPhone}` 
       });
 

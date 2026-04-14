@@ -4,6 +4,7 @@ import { ArrowLeft, Users, Camera, Search } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_URL } from "../utils/constants";
 
 const { Title, Text } = Typography;
 
@@ -20,7 +21,7 @@ const CreateGroup = () => {
       try {
         const token = localStorage.getItem("veranda_token");
         const currentUserId = localStorage.getItem("veranda_userId");
-        const response = await axios.get(`https://veranda-service-production.up.railway.app/api/users/contacts?currentUserId=${currentUserId}`, {
+        const response = await axios.get(`${API_URL}/api/users/contacts?currentUserId=${currentUserId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setContacts(response.data);
@@ -47,7 +48,7 @@ const CreateGroup = () => {
       const currentUserId = localStorage.getItem("veranda_userId");
       
       // We send the group name and the list of user IDs (including the creator)
-      await axios.post("https://veranda-service-production.up.railway.app/api/groups/create", {
+      await axios.post(`${API_URL}/api/groups/create`, {
         name: groupName,
         adminId: currentUserId,
         memberIds: [...selectedUsers, currentUserId]

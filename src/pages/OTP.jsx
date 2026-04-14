@@ -8,6 +8,7 @@ import {
 import { motion } from "framer-motion";
 import { useRef, useState } from "react";
 import axios from "axios";
+import { API_URL } from "../utils/constants";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -50,7 +51,7 @@ const OTP = () => {
     setLoading(true);
     try {
       // 3. Use the phone number from state + the typed OTP
-      const response = await axios.post("https://veranda-service-production.up.railway.app/api/auth/verify-otp", {
+      const response = await axios.post(`${API_URL}/api/auth/verify-otp`, {
         phoneNumber: `+91${state.phoneNumber}`,
         otp: fullOtp
       });

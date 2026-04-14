@@ -16,6 +16,7 @@ import NewMessage from './pages/NewMessage.jsx';
 import Status from './pages/Status.jsx';
 import AddContact from './pages/AddContact.jsx';
 import CreateGroup from './pages/CreateGroup.jsx';
+import ProfileView from './pages/ProfileView.jsx';
 
 const { Content } = Layout;
 
@@ -36,6 +37,7 @@ export default function App() {
               <Route path="/create-group" element={<CreateGroup />} />
               <Route path="/status" element={<Status />} />
               <Route path="/chat/:id" element={<ChatRoom />} />
+              <Route path="/profile/:userId" element={<ProfileView />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/contact/:id" element={<ContactInfo />} />

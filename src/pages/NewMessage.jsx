@@ -13,6 +13,7 @@ import { Search, ArrowLeft, UserPlus, Users, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_URL } from "../utils/constants";
 
 const { Title, Text } = Typography;
 
@@ -30,7 +31,7 @@ const NewMessage = () => {
         const currentUserId = localStorage.getItem("veranda_userId");
 
         const response = await axios.get(
-          "https://veranda-service-production.up.railway.app/api/users/contacts",
+          `${API_URL}/api/users/contacts`,
           {
             params: { currentUserId },
             headers: { Authorization: `Bearer ${token}` },
