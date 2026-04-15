@@ -189,12 +189,18 @@ const Login = () => {
                 ]}
               />
               <Input
+                autoFocus
                 placeholder="000 000 0000"
                 inputMode="numeric"
                 maxLength={12}
                 variant="borderless"
                 value={phoneNumber}
                 onChange={handleChange}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSendOtp();
+                  }
+                }}
                 style={{
                   fontSize: "18px",
                   fontWeight: 600,

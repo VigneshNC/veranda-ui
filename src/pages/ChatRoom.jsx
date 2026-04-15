@@ -26,7 +26,7 @@ const { Header, Content, Footer } = Layout;
 
 const ChatRoom = () => {
   const navigate = useNavigate();
-  const { recipientId } = useParams();
+  const { id } = useParams();
   const [inputText, setInputText] = useState("");
   const scrollRef = useRef(null);
 
@@ -44,7 +44,7 @@ const ChatRoom = () => {
 
   const handleSend = () => {
     if (inputText.trim()) {
-      sendMessage(recipientId, inputText);
+      sendMessage(id, inputText);
       setInputText("");
     }
   };
@@ -112,7 +112,7 @@ const ChatRoom = () => {
               align="center"
               gap={12}
               style={{ cursor: "pointer" }}
-              onClick={() => navigate(`/profile/${recipientId}`)} // Navigate on click
+              onClick={() => navigate(`/profile/${id}`)} // Navigate on click
             >
               <Button
                 type="text"
@@ -121,7 +121,7 @@ const ChatRoom = () => {
               />
               <Avatar
                 size={40}
-                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${recipientId}`}
+                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${id}`}
               />
               <div>
                 <Title level={5} style={{ margin: 0, fontSize: "15px" }}>

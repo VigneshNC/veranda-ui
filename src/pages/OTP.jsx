@@ -6,7 +6,7 @@ import {
   ArrowLeftOutlined,
 } from "@ant-design/icons";
 import { motion } from "framer-motion";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { API_URL } from "../utils/constants";
 
@@ -19,6 +19,12 @@ const OTP = () => {
   const [loading, setLoading] = useState(false);
 
   const inputRefs = useRef([]);
+
+  useEffect(() => {
+    if (inputRefs.current[0]) {
+      inputRefs.current[0].focus();
+    }
+  }, []);
 
   const handleChange = (value, index) => {
     if (isNaN(value)) return; // Only allow numbers
@@ -53,13 +59,13 @@ const OTP = () => {
       // 3. Use the phone number from state + the typed OTP
       const response = await axios.post(`${API_URL}/api/auth/verify-otp`, {
         phoneNumber: `+91${state.phoneNumber}`,
-        otp: fullOtp
+        otp: fullOtp,
       });
 
       // 4. Success! Save JWT and go to Chat
       localStorage.setItem("veranda_token", response.data.token);
       localStorage.setItem("veranda_userId", response.data.userId);
-      
+
       navigate("/messages");
     } catch (error) {
       message.error("Invalid OTP. Please try 123456");
@@ -192,7 +198,15 @@ const OTP = () => {
                 value={digit}
                 maxLength={1}
                 onChange={(e) => handleChange(e.target.value, i)}
-                onKeyDown={(e) => handleKeyDown(e, i)}
+                onKeyDown={(e) => {
+                  // Run your existing backspace logic
+                  handleKeyDown(e, i);
+
+                  // 2. Manual Submit on Enter
+                  if (e.key === "Enter") {
+                    handleVerify();
+                  }
+                }}
                 inputMode="numeric"
                 placeholder="-"
                 style={{
