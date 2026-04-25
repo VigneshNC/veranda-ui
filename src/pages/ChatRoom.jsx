@@ -112,7 +112,7 @@ const ChatRoom = () => {
               align="center"
               gap={12}
               style={{ cursor: "pointer" }}
-              onClick={() => navigate(`/profile/${id}`)} // Navigate on click
+              onClick={() => navigate(`/contact/${id}`)} // Navigate on click
             >
               <Button
                 type="text"

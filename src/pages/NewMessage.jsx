@@ -192,7 +192,8 @@ const NewMessage = () => {
               </List.Item>
               <List.Item
                 style={{ cursor: "pointer", border: "none" }}
-                onClick={() => navigate("/add-contact")}
+                // onClick={() => navigate("/add-contact")}
+                onClick={() => navigate("/search-global")}
               >
                 <List.Item.Meta
                   avatar={

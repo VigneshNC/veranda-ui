@@ -66,7 +66,11 @@ const OTP = () => {
       localStorage.setItem("veranda_token", response.data.token);
       localStorage.setItem("veranda_userId", response.data.userId);
 
-      navigate("/messages");
+      if (response.data.isNewUser) {
+        navigate("/profile-setup");
+      } else {
+        navigate("/messages");
+      }
     } catch (error) {
       message.error("Invalid OTP. Please try 123456");
     } finally {
