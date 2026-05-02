@@ -1,29 +1,38 @@
-import { ConfigProvider, Layout } from 'antd';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { theme } from './theme.js';
+import { ConfigProvider, Layout } from "antd";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { theme } from "./theme.js";
 
 // Pages (to be implemented)
-import Login from './pages/Login';
-import OTP from './pages/OTP';
-import Messages from './pages/Messages';
-import ChatRoom from './pages/ChatRoom';
-import Settings from './pages/Settings';
-import Profile from './pages/Profile';
-import ContactInfo from './pages/ContactInfo.jsx';
-import Calls from './pages/Calls';
-import Welcome from './pages/Welcome.jsx';
-import NewMessage from './pages/NewMessage.jsx';
-import Status from './pages/Status.jsx';
-import AddContact from './pages/AddContact.jsx';
-import CreateGroup from './pages/CreateGroup.jsx';
-import ProfileView from './pages/ProfileView.jsx';
-import ProfileSetup from './pages/ProfileSetup.jsx';
-import ContactProfile from './pages/ContactInfo.jsx';
-import AccountSettings from './pages/AccountSettings.jsx';
-import PrivacySettings from './pages/PrivacySettings.jsx';
-import BlockedContacts from './pages/BlockedContacts.jsx';
-import AddBlockedContact from './pages/AddBlockedContact.jsx';
-import GlobalSearch from './pages/GlobalSearch.jsx';
+import Login from "./pages/Login";
+import OTP from "./pages/OTP";
+import Messages from "./pages/Messages";
+import ChatRoom from "./pages/ChatRoom";
+import Settings from "./pages/Settings";
+import Profile from "./pages/Profile";
+import ContactInfo from "./pages/ContactInfo.jsx";
+import Calls from "./pages/Calls";
+import Welcome from "./pages/Welcome.jsx";
+import NewMessage from "./pages/NewMessage.jsx";
+import Status from "./pages/Status.jsx";
+import AddContact from "./pages/AddContact.jsx";
+import CreateGroup from "./pages/CreateGroup.jsx";
+import ProfileView from "./pages/ProfileView.jsx";
+import ProfileSetup from "./pages/ProfileSetup.jsx";
+import ContactProfile from "./pages/ContactInfo.jsx";
+import AccountSettings from "./pages/AccountSettings.jsx";
+import PrivacySettings from "./pages/PrivacySettings.jsx";
+import BlockedContacts from "./pages/BlockedContacts.jsx";
+import AddBlockedContact from "./pages/AddBlockedContact.jsx";
+import GlobalSearch from "./pages/GlobalSearch.jsx";
+import SecuritySettings from "./pages/SecuritySettings.jsx";
+import ChangeNumber from "./pages/ChangeNumber.jsx";
+import RequestAccountInfo from "./pages/RequestAccountInfo.jsx";
+import DeleteAccount from "./pages/DeleteAccount.jsx";
 
 const { Content } = Layout;
 
@@ -31,7 +40,7 @@ export default function App() {
   return (
     <ConfigProvider theme={theme}>
       <Router>
-        <Layout style={{ minHeight: '100vh' }}>
+        <Layout style={{ minHeight: "100vh" }}>
           <Content>
             <Routes>
               {/* <Route path="/" element={<Navigate to="/welcome" replace />} /> */}
@@ -53,8 +62,27 @@ export default function App() {
               <Route path="/settings/account" element={<AccountSettings />} />
               <Route path="/settings/privacy" element={<PrivacySettings />} />
               <Route path="/settings/blocked" element={<BlockedContacts />} />
-              <Route path="/settings/privacy/block-new" element={<AddBlockedContact />} />
+              <Route
+                path="/settings/privacy/block-new"
+                element={<AddBlockedContact />}
+              />
               <Route path="/search-global" element={<GlobalSearch />} />
+              <Route
+                path="/settings/account/security"
+                element={<SecuritySettings />}
+              />
+              <Route
+                path="/settings/account/change-number"
+                element={<ChangeNumber />}
+              />
+              <Route
+                path="/settings/account/request-info"
+                element={<RequestAccountInfo />}
+              />
+              <Route
+                path="/settings/account/delete"
+                element={<DeleteAccount />}
+              />
             </Routes>
           </Content>
         </Layout>

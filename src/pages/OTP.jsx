@@ -65,6 +65,8 @@ const OTP = () => {
       // 4. Success! Save JWT and go to Chat
       localStorage.setItem("veranda_token", response.data.token);
       localStorage.setItem("veranda_userId", response.data.userId);
+      // During Login/Verify OTP:
+      localStorage.setItem('veranda_phoneNumber', response.data.phoneNumber);
 
       if (response.data.isNewUser) {
         navigate("/profile-setup");

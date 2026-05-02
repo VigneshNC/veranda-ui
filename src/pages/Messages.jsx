@@ -8,6 +8,7 @@ import {
   Layout,
   message,
   Dropdown,
+  Spin,
 } from "antd";
 import {
   SearchOutlined,
@@ -21,64 +22,45 @@ import {
   SettingOutlined,
   LaptopOutlined,
 } from "@ant-design/icons";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import BottomNav from "../components/BottomNav";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { API_URL } from "../utils/constants";
+import { useChat } from "../hooks/useChat"; // Import the hook
 
 const { Title, Text } = Typography;
 const { Header, Content } = Layout;
 
 const Messages = () => {
   const navigate = useNavigate();
-  const [contacts, setContacts] = useState([]); // State for real data
+  const [conversations, setConversations] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 1. Get IDs for Logout logic
   const myId = localStorage.getItem("veranda_userId");
   const token = localStorage.getItem("veranda_token");
+
+  // 1. Connect to WebSocket globally for the Inbox
+  const { messages } = useChat(myId, token);
 
   // --- LOGOUT HANDLER ---
   const handleLogout = async () => {
     try {
-      // 1. Notify Backend (Optional but recommended to set isOnline = false)
       await axios.post(
         `${API_URL}/api/auth/logout/${myId}`,
         {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        },
+        { headers: { Authorization: `Bearer ${token}` } },
       );
     } catch (error) {
       console.error("Logout notification failed", error);
     } finally {
-      // 2. Clear Storage & Redirect
       localStorage.clear();
       message.success("Logged out successfully");
       navigate("/login", { replace: true });
     }
   };
 
-  // --- DROPDOWN MENU ITEMS ---
-  const menuItems = [
-    {
-      key: "1",
-      label: "My Profile",
-      icon: <UserOutlined />,
-      onClick: () => navigate(`/profile/${myId}`),
-    },
-    { type: "divider" },
-    {
-      key: "2",
-      label: "Logout",
-      icon: <LogoutOutlined />,
-      danger: true,
-      onClick: handleLogout,
-    },
-  ];
-
-  // --- MENU FOR YOUR AVATAR (Personal) ---
+  // --- MENU ITEMS ---
   const profileMenuItems = [
     {
       key: "p1",
@@ -89,7 +71,7 @@ const Messages = () => {
     {
       key: "p2",
       label: "Privacy Settings",
-      icon: <LockOutlined />, // Add this to your imports
+      icon: <LockOutlined />,
       onClick: () => navigate("/settings/privacy"),
     },
     { type: "divider" },
@@ -102,12 +84,11 @@ const Messages = () => {
     },
   ];
 
-  // --- MENU FOR THE "MORE" ICON (General App Actions) ---
   const moreMenuItems = [
     {
       key: "m1",
       label: "New Group",
-      icon: <UsergroupAddOutlined />, // Add this to your imports
+      icon: <UsergroupAddOutlined />,
       onClick: () => navigate("/create-group"),
     },
     {
@@ -130,30 +111,70 @@ const Messages = () => {
     },
   ];
 
-  // 1. Fetch data from Spring Boot
-  useEffect(() => {
-    const fetchContacts = async () => {
-      try {
-        const token = localStorage.getItem("veranda_token");
-        const currentUserId = localStorage.getItem("veranda_userId");
+  // 2. Initial Fetch of Inbox
+  const fetchInbox = async () => {
+    try {
+      const response = await axios.get(
+        `${API_URL}/api/messages/inbox/${myId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      setConversations(response.data);
+    } catch (error) {
+      console.error("Error fetching inbox", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        const response = await axios.get(
-          `${API_URL}/api/users/contacts?currentUserId=${currentUserId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
+  useEffect(() => {
+    if (myId && token) fetchInbox();
+  }, [myId, token]);
+
+  // 3. REAL-TIME UPDATE LOGIC
+  // Listen to the 'messages' array from the hook. When a new message arrives,
+  // we update the specific row in the inbox and move it to the top.
+  useEffect(() => {
+    if (messages.length > 0) {
+      const latestMsg = messages[messages.length - 1];
+
+      setConversations((prev) => {
+        const otherPersonId =
+          latestMsg.senderId === myId
+            ? latestMsg.recipientId
+            : latestMsg.senderId;
+
+        // Find if we already have a conversation with this person
+        const existingIndex = prev.findIndex(
+          (c) =>
+            c.sender.id === otherPersonId || c.receiver.id === otherPersonId,
         );
 
-        setContacts(response.data);
-      } catch (error) {
-        console.error("Error fetching contacts", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+        let newList = [...prev];
 
-    if (myId) fetchContacts();
-  }, [myId, token]);
+        if (existingIndex !== -1) {
+          // Update the existing row with the new content/date and move to top
+          const updatedConv = {
+            ...newList[existingIndex],
+            content: latestMsg.content,
+            createdDate: latestMsg.timestamp || new Date().toISOString(),
+          };
+          newList.splice(existingIndex, 1);
+          newList.unshift(updatedConv);
+        } else {
+          // If it's a completely new conversation from someone not in the list, re-fetch
+          fetchInbox();
+        }
+        return newList;
+      });
+    }
+  }, [messages]);
+
+  const formatTime = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
 
   return (
     <Layout style={{ minHeight: "100vh", backgroundColor: "#f7f9fc" }}>
@@ -172,33 +193,27 @@ const Messages = () => {
           borderBottom: "1px solid rgba(0,0,0,0.05)",
         }}
       >
-        <Flex align="center" gap={12}>
-          <Title
-            level={4}
-            style={{
-              margin: 0,
-              color: "#00453d",
-              fontWeight: 800,
-              letterSpacing: "-1px",
-            }}
-          >
-            Veranda
-          </Title>
-        </Flex>
+        <Title
+          level={4}
+          style={{
+            margin: 0,
+            color: "#00453d",
+            fontWeight: 800,
+            letterSpacing: "-1px",
+          }}
+        >
+          Veranda
+        </Title>
         <Flex gap={12} align="center">
-          {/* Search Action */}
           <Button
             type="text"
             icon={<SearchOutlined style={{ fontSize: "18px" }} />}
             shape="circle"
           />
-
-          {/* MORE ACTIONS DROPDOWN */}
           <Dropdown
             menu={{ items: moreMenuItems }}
             placement="bottomRight"
             trigger={["click"]}
-            overlayStyle={{ width: "200px" }}
           >
             <Button
               type="text"
@@ -206,8 +221,6 @@ const Messages = () => {
               shape="circle"
             />
           </Dropdown>
-
-          {/* PROFILE AVATAR DROPDOWN */}
           <Dropdown
             menu={{ items: profileMenuItems }}
             placement="bottomRight"
@@ -251,68 +264,111 @@ const Messages = () => {
             Messages
           </Title>
           <Text style={{ color: "#3f4946", fontSize: "14px" }}>
-            {contacts.length} contacts available
+            {conversations.length} active conversations
           </Text>
         </div>
 
-        <Flex vertical gap={16}>
+        <Flex vertical gap={12}>
           {loading ? (
-            <Flex justify="center" style={{ marginTop: 40 }}>
-              <Text italic>Loading your Veranda chats...</Text>
+            <Flex
+              justify="center"
+              vertical
+              align="center"
+              style={{ marginTop: 60, gap: 16 }}
+            >
+              <Spin size="large" />
+              <Text italic type="secondary">
+                Loading chats...
+              </Text>
+            </Flex>
+          ) : conversations.length === 0 ? (
+            <Flex
+              vertical
+              align="center"
+              style={{ marginTop: 60, opacity: 0.5 }}
+            >
+              <CommentOutlined style={{ fontSize: 48, marginBottom: 16 }} />
+              <Text>No messages yet.</Text>
             </Flex>
           ) : (
-            contacts.map((user, index) => (
-              <motion.div
-                key={user.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                onClick={() => navigate(`/chat/${user.id}`)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "16px",
-                  padding: "16px",
-                  borderRadius: "24px",
-                  backgroundColor: "#fff",
-                  boxShadow: "0 4px 32px rgba(25, 28, 30, 0.04)",
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                }}
-              >
-                {/* CLICK AVATAR -> OPEN PROFILE */}
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation(); // Prevents the card's onClick from firing
-                    navigate(`/contact/${user.id}`);
-                  }}
-                >
-                  <Avatar
-                    src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.phoneNumber}`}
-                    size={56}
-                    style={{ borderRadius: "16px" }}
-                  />
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <Flex justify="space-between" align="baseline">
-                    <Text strong style={{ fontSize: "16px", color: "#191c1e" }}>
-                      {user.displayName || user.phoneNumber}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: "12px",
-                        color: user.online ? "#52c41a" : "#3f4946",
-                      }}
+            <AnimatePresence mode="popLayout">
+              {conversations.map((msg, index) => {
+                const contact =
+                  msg.sender.id === myId ? msg.receiver : msg.sender;
+                const isSentByMe = msg.sender.id === myId;
+
+                return (
+                  <motion.div
+                    key={contact.id} // Use contact ID to keep identity stable
+                    layout
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    onClick={() => navigate(`/chat/${contact.id}`)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "16px",
+                      padding: "16px",
+                      borderRadius: "24px",
+                      backgroundColor: "#fff",
+                      cursor: "pointer",
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
+                      transition: "all 0.2s",
+                    }}
+                    whileHover={{ scale: 1.01, backgroundColor: "#f0f7f4" }}
+                  >
+                    <Badge
+                      dot
+                      status={contact.online ? "success" : "default"}
+                      offset={[-6, 42]}
                     >
-                      {user.online ? "● Online" : "Active"}
-                    </Text>
-                  </Flex>
-                  <Text ellipsis style={{ fontSize: "14px", color: "#3f4946" }}>
-                    Tap to start a conversation...
-                  </Text>
-                </div>
-              </motion.div>
-            ))
+                      <Avatar
+                        src={
+                          contact.profileImageUrl ||
+                          `https://api.dicebear.com/7.x/avataaars/svg?seed=${contact.phoneNumber}`
+                        }
+                        size={56}
+                        style={{
+                          borderRadius: "18px",
+                          backgroundColor: "#e6f4f1",
+                        }}
+                      />
+                    </Badge>
+
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <Flex justify="space-between" align="baseline">
+                        <Text
+                          strong
+                          style={{ fontSize: "16px", color: "#191c1e" }}
+                        >
+                          {contact.displayName || contact.phoneNumber}
+                        </Text>
+                        <Text style={{ fontSize: "11px", color: "#8c8c8c" }}>
+                          {formatTime(msg.createdDate)}
+                        </Text>
+                      </Flex>
+
+                      <Text
+                        ellipsis
+                        style={{
+                          fontSize: "14px",
+                          color: "#666",
+                          display: "block",
+                        }}
+                      >
+                        {isSentByMe && (
+                          <span style={{ color: "#00453d", fontWeight: 500 }}>
+                            You:{" "}
+                          </span>
+                        )}
+                        {msg.content}
+                      </Text>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           )}
         </Flex>
       </Content>
