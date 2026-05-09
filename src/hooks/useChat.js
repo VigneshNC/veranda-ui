@@ -164,7 +164,7 @@ export const useChat = (myId, token) => {
   };
 
   // 4. Send Message Function
-  const sendMessage = (recipientId, content) => {
+  const sendMessage = (recipientId, content, attachmentUrl = null, fileType = "CHAT") => {
     if (stompClient.current && stompClient.current.connected) {
       const tempId = getUUID(); // Generate unique ID on frontend
 
@@ -173,8 +173,10 @@ export const useChat = (myId, token) => {
         senderId: myId,
         recipientId: recipientId,
         content: content,
+        attachmentUrl: attachmentUrl,
+        attachmentType: fileType,
         timestamp: new Date().toISOString(),
-        type: "CHAT",
+        type: attachmentUrl ? "MEDIA" : "CHAT",
         status: "SENT",
       };
 
@@ -188,5 +190,13 @@ export const useChat = (myId, token) => {
     }
   };
 
-  return { messages, sendMessage, fetchHistory, sendReadReceipt, isPartnerTyping, sendTypingStatus, setMessages };
+  return {
+    messages,
+    sendMessage,
+    fetchHistory,
+    sendReadReceipt,
+    isPartnerTyping,
+    sendTypingStatus,
+    setMessages,
+  };
 };

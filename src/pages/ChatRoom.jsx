@@ -117,13 +117,14 @@ const ChatRoom = () => {
 
   // NEW: Handle Media messages from AttachmentMenu
   const handleMediaMessage = (url, type) => {
-    // Call sendMessage with attachment parameters
-    // Ensure your useChat hook's sendMessage supports these extra arguments
+    // Determine if it's an image or video for the 'type' field
+    const messageType = type.startsWith("image") ? "IMAGE" : "VIDEO";
+
     sendMessage(
       id,
-      type.startsWith("image") ? "📷 Image" : "🎥 Video",
+      messageType === "IMAGE" ? "📷 Image" : "🎥 Video", // content (placeholder)
       url,
-      type,
+      messageType,
     );
   };
 
@@ -332,7 +333,7 @@ const ChatRoom = () => {
                       {/* Media Rendering */}
                       {msg.attachmentUrl && (
                         <div style={{ marginBottom: 8 }}>
-                          {msg.attachmentType?.startsWith("image") ? (
+                          {msg.attachmentType === "IMAGE" ? (
                             <Image
                               src={msg.attachmentUrl}
                               width={200}
@@ -340,15 +341,10 @@ const ChatRoom = () => {
                             />
                           ) : (
                             <video
-                              width="200"
+                              src={msg.attachmentUrl}
                               controls
-                              style={{ borderRadius: 8 }}
-                            >
-                              <source
-                                src={msg.attachmentUrl}
-                                type={msg.attachmentType}
-                              />
-                            </video>
+                              style={{ maxWidth: '200px' }}
+                            />
                           )}
                         </div>
                       )}

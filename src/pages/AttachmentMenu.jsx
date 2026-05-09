@@ -5,31 +5,64 @@ import {
   PictureOutlined,
   VideoCameraOutlined,
 } from "@ant-design/icons";
+import { API_URL } from "../utils/constants";
+import axios from "axios";
+import { useState } from "react";
 
 const AttachmentMenu = ({ onUploadSuccess }) => {
-  const { startUpload, isUploading } = useUploadThing("mediaUploader", {
-    onClientUploadComplete: (res) => {
-      // FIX: Normalize the type so ChatRoom.jsx recognizes it
-      // UploadThing 'serverData' or 'type' might be 'image/png'
-      const rawType = res[0].type || "";
-      let normalizedType = "FILE";
+  const [file, setFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
-      if (rawType.startsWith("image/")) normalizedType = "IMAGE";
-      if (rawType.startsWith("video/")) normalizedType = "VIDEO";
+  const uploadFile = async (selectedFile) => {
+    // Safety check: ensure a file was actually selected
+    if (!selectedFile) return;
 
-      onUploadSuccess(res[0].url, normalizedType);
-    },
-    onUploadError: (e) => alert("Upload failed: " + e.message),
-  });
+    console.log("File selected, starting automatic upload...");
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    setUploading(true);
+    try {
+      // Direct upload call
+      const response = await axios.post(
+        `${API_URL}/api/messages/upload`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
+
+      if (response && response.data && response.status == 200) {
+        const uploadUrl = response.data.url;
+
+        const uploadResponse = await axios.put(`${uploadUrl}`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+        console.log("Upload successful:", uploadResponse.data);
+
+        onUploadSuccess(uploadResponse.data.url, selectedFile.type)
+      }
+
+      alert("Upload Complete!");
+    } catch (error) {
+      console.error("Error during auto-upload:", error);
+      alert("Upload failed.");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleFileAction = (acceptType) => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = acceptType;
     input.onchange = (e) => {
-      const file = e.target.files[0];
-      // Optional: Add a size check here (e.g., if file.size > 4MB)
-      if (file) startUpload([file]);
+      uploadFile(e.target.files[0]);
     };
     input.click();
   };
@@ -68,7 +101,7 @@ const AttachmentMenu = ({ onUploadSuccess }) => {
         icon={<PaperClipOutlined style={{ fontSize: 20, opacity: 0.6 }} />}
         type="text"
         shape="circle"
-        loading={isUploading}
+        loading={uploading}
       />
     </Popover>
   );
