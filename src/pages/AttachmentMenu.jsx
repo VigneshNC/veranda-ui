@@ -1,5 +1,4 @@
 import { Button, Popover, Tooltip } from "antd";
-import { useUploadThing } from "../utils/uploadthing"; // Double check this path (../ vs ./)
 import {
   PaperClipOutlined,
   PictureOutlined,
@@ -45,7 +44,7 @@ const AttachmentMenu = ({ onUploadSuccess }) => {
         });
         console.log("Upload successful:", uploadResponse.data);
 
-        onUploadSuccess(uploadResponse.data.url, selectedFile.type)
+        onUploadSuccess(uploadResponse.data.url, selectedFile.type);
       }
 
       alert("Upload Complete!");
